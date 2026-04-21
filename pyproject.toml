@@ -1,0 +1,27 @@
+[project]
+name = "aes-llm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastexcel>=0.14.0",
+    "json-repair>=0.57.1",
+    "openai>=1.99.9",
+    "pandas>=2.3.2",
+    "polars>=1.32.3",
+    "python-dotenv>=1.1.1",
+    "scikit-learn>=1.7.1",
+    "seaborn>=0.13.2",
+    "tiktoken>=0.11.0",
+    "tokenrail",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.30.1",
+    "ruff>=0.14.13",
+]
+
+[tool.uv.sources]
+tokenrail = { git = "https://github.com/takumi0shibata/tokenrail", tag = "v0.1.2" }
