@@ -3,6 +3,7 @@ import re
 import polars as pl
 from sklearn.model_selection import train_test_split
 from typing import Optional
+import tiktoken
 
 
 def get_score_range(dataset_name, prompt_id):
@@ -119,3 +120,46 @@ def load_asap_dataset(
         test_df = pl.concat([test_df, tmp_test_df], how="vertical")
 
         return test_df
+
+
+def get_min_max_scores(prompt: int, attribute: str) -> tuple:
+    attribute_ranges = {
+        1: {'overall': (2, 12), 'content': (1, 6), 'organization': (1, 6), 'word_choice': (1, 6), 'sentence_fluency': (1, 6), 'conventions': (1, 6)},
+        2: {'overall': (1, 6), 'content': (1, 6), 'organization': (1, 6), 'word_choice': (1, 6), 'sentence_fluency': (1, 6), 'conventions': (1, 6)},
+        3: {'overall': (0, 3), 'content': (0, 3), 'prompt_adherence': (0, 3), 'language': (0, 3), 'narrativity': (0, 3)},
+        4: {'overall': (0, 3), 'content': (0, 3), 'prompt_adherence': (0, 3), 'language': (0, 3), 'narrativity': (0, 3)},
+        5: {'overall': (0, 4), 'content': (0, 4), 'prompt_adherence': (0, 4), 'language': (0, 4), 'narrativity': (0, 4)},
+        6: {'overall': (0, 4), 'content': (0, 4), 'prompt_adherence': (0, 4), 'language': (0, 4), 'narrativity': (0, 4)},
+        7: {'overall': (0, 30), 'content': (0, 6), 'organization': (0, 6), 'conventions': (0, 6), 'style': (0, 6)},
+        8: {'overall': (0, 60), 'content': (2, 12), 'organization': (2, 12), 'word_choice': (2, 12), 'sentence_fluency': (2, 12), 'conventions': (2, 12), 'voice': (2, 12)},
+    }
+    
+    if prompt in attribute_ranges and attribute in attribute_ranges[prompt]:
+        return attribute_ranges[prompt][attribute]
+    else:
+        raise ValueError(f"Invalid prompt {prompt} or attribute {attribute}.")
+
+
+def target_attribute(prompt: int) -> list[str]:
+    attribute_map = {
+        1: ['overall', 'content', 'organization', 'word_choice', 'sentence_fluency', 'conventions'],
+        2: ['overall', 'content', 'organization', 'word_choice', 'sentence_fluency', 'conventions'],
+        3: ['overall', 'content', 'prompt_adherence', 'language', 'narrativity'],
+        4: ['overall', 'content', 'prompt_adherence', 'language', 'narrativity'],
+        5: ['overall', 'content', 'prompt_adherence', 'language', 'narrativity'],
+        6: ['overall', 'content', 'prompt_adherence', 'language', 'narrativity'],
+        7: ['overall', 'content', 'organization', 'conventions', 'style'],
+        8: ['overall', 'content', 'organization', 'word_choice', 'sentence_fluency', 'conventions', 'voice'],
+    }
+    return attribute_map.get(prompt, [])
+
+
+def count_total_tokens(queries, model="gpt-4o-mini"):
+    enc = tiktoken.encoding_for_model(model)
+    total_tokens = 0
+
+    for qlist in queries.values():
+        for msg in qlist:
+            total_tokens += len(enc.encode(msg["content"]))
+
+    return total_tokens

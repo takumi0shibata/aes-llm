@@ -14,7 +14,7 @@ dependencies = [
     "scikit-learn>=1.7.1",
     "seaborn>=0.13.2",
     "tiktoken>=0.11.0",
-    "tokenrail",
+    "tokenrail[vllm]",
 ]
 
 [dependency-groups]
@@ -24,4 +24,4 @@ dev = [
 ]
 
 [tool.uv.sources]
-tokenrail = { git = "https://github.com/takumi0shibata/tokenrail", tag = "v0.1.2" }
+tokenrail = { git = "https://github.com/takumi0shibata/tokenrail", tag = "v0.1.4" }
