@@ -64,25 +64,35 @@ def main(prompt_id, att, args):
 
     print(f"総トークン数: {count_total_tokens(queries):,}")
 
-    # Run inference
-    client = RailClient.vllm(
-        model_id=args.model,
-        family=args.model_family,
-        batch_flush_size=256,
-        dtype="bfloat16",
-        max_model_len=32000,
-        gpu_memory_utilization=0.92,
-        enable_prefix_caching=True,
-        trust_remote_code=True,
-        seed=args.seed,
-    )
+    if args.model_family in ['qwen', 'gemma']:
+        # Run inference
+        client = RailClient.vllm(
+            model_id=args.model,
+            family=args.model_family,
+            batch_flush_size=256,
+            dtype="bfloat16",
+            max_model_len=32000,
+            gpu_memory_utilization=0.92,
+            enable_prefix_caching=True,
+            trust_remote_code=True,
+            seed=args.seed,
+        )
 
-    items = batch_items_from_queries(
-        queries,
-        model=args.model,
-        max_output_tokens=args.max_output_tokens,
-        enable_thinking=False,
-    )
+        items = batch_items_from_queries(
+            queries,
+            model=args.model,
+            max_output_tokens=args.max_output_tokens,
+            enable_thinking=False,
+        )
+    elif args.model_family in ['gpt']:
+        client = RailClient.openai()
+
+        items = batch_items_from_queries(
+            queries,
+            model=args.model,
+            reasoning_effort="none",
+            verbosity="low",
+        )
 
     executor = BatchExecutor(
         client=client,
@@ -146,8 +156,8 @@ def main(prompt_id, att, args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, required=True, choices=["Qwen/Qwen3.5-9B", "google/gemma-4-e4b-it"])
-    parser.add_argument("--model-family", type=str, required=True, choices=["qwen", "gemma"])
+    parser.add_argument("--model", type=str, required=True, choices=["Qwen/Qwen3.5-9B", "google/gemma-4-e4b-it", "gpt-5.4-mini-2026-03-17"])
+    parser.add_argument("--model-family", type=str, required=True, choices=["qwen", "gemma", "gpt"])
     parser.add_argument("--db-path", type=str, default="./dataset/asap_with_traits.csv")
     parser.add_argument("--llm-prompt-dir", type=str, default="./llm_prompts/")
     parser.add_argument("--out-dir", type=str, default="./out/few_shot/")
